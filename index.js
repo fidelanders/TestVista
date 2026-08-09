@@ -13,8 +13,8 @@ const {
 
 const generatePdf = require('./reporter/exportPdf');
 
-// const reportsDir = path.resolve(__dirname, 'reports');
-const reportsDir = '/tmp/reports';
+const reportsDir = path.resolve(__dirname, 'reports');
+// const reportsDir = path.resolve(__dirname, '/tmp/reports');
 
 function getCollectionVersion(version) {
 
@@ -227,20 +227,15 @@ function runCollection({ collection, environment, reportBaseName = 'report' }) {
                             `${reportBaseName}.json`
                         );
 
-                    await fs.promises.writeFile(
+
+                    fs.writeFileSync(
                         jsonReportPath,
-                        JSON.stringify(sanitizedSummary, null, 2),
-                    'utf8');
-
-
-                    // fs.writeFileSync(
-                    //     jsonReportPath,
-                    //     JSON.stringify(
-                    //         sanitizedSummary,
-                    //         null,
-                    //         2
-                    //     )
-                    // );
+                        JSON.stringify(
+                            sanitizedSummary,
+                            null,
+                            2
+                        )
+                    );
 
 
 
