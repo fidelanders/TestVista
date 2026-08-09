@@ -4,8 +4,8 @@
   "description": "TestVista — runs Postman collections through Newman, redacts secrets, and generates a premium interactive HTML dashboard (with PDF export) either from the CLI or via a browser upload UI.",
   "main": "index.js",
   "scripts": {
-    "start": "node --no-deprecation index.js",
-    "web": "node --no-deprecation server.js"
+    "start": "node --no-deprecation server.js",
+    "web": "node --no-deprecation index.js"    
   },
   "keywords": [
     "newman",
