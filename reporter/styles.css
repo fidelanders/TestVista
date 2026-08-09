@@ -1,0 +1,981 @@
+  :root {
+    --blue-deep: #0b2e6e;
+    --blue-mid: #0b5ed7;
+    --blue-light: #3b82f6;
+    --green: #16a34a;
+    --red: #dc2626;
+    --orange: #ea580c;
+    --bg: #f3f6fb;
+    --card-bg: #ffffff;
+    --text: #1f2430;
+    --text-muted: #64748b;
+    --border: #e5e9f0;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    color: var(--text);
+  }
+
+  .header {
+    position: relative;
+    overflow: hidden;
+    /* Same dark navy console background as the upload landing page
+       (public/styles.css --bg / --panel), so the report doesn't look like
+       a different product from the site that generated it. */
+    background:
+      radial-gradient(circle at 85% -15%, rgba(52, 211, 153, 0.16), transparent 45%),
+      radial-gradient(circle at 10% 115%, rgba(125, 211, 252, 0.14), transparent 50%),
+      linear-gradient(160deg, #0d1424 0%, #0a0f1c 60%, #070b15 100%);
+    color: #e8ecf6;
+    padding: 28px 44px 36px;
+    box-shadow: 0 20px 40px -18px rgba(0, 0, 0, 0.55);
+  }
+
+  /* The same faint cyan grid used behind the landing page's hero, scaled
+     down and confined to the header instead of the whole viewport. */
+  .header-grid {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background-image:
+      linear-gradient(rgba(125, 211, 252, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(125, 211, 252, 0.06) 1px, transparent 1px);
+    background-size: 36px 36px;
+    mask-image: radial-gradient(ellipse 80% 100% at 50% 0%, black 40%, transparent 90%);
+  }
+
+  .header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #34d399, #7dd3fc, #34d399);
+  }
+
+  .header-top {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 22px;
+  }
+
+  .brand-mark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Courier New', monospace;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #e8ecf6;
+    opacity: 0.9;
+  }
+
+  .brand-prompt {
+    color: #34d399;
+  }
+
+  .brand-accent {
+    color: #7dd3fc;
+    font-weight: 600;
+  }
+
+  .header-main {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 12px;
+    opacity: 0.7;
+    margin-bottom: 10px;
+  }
+
+  .eyebrow-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #7dd3fc;
+    box-shadow: 0 0 6px rgba(125, 211, 252, 0.7);
+  }
+
+  .header h1 {
+    margin: 0 0 12px 0;
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: #ffffff;
+  }
+
+  .version-pill {
+    display: inline-block;
+    padding: 5px 14px;
+    border-radius: 20px;
+    background: rgba(125, 211, 252, 0.1);
+    border: 1px solid rgba(125, 211, 252, 0.3);
+    color: #7dd3fc;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+
+  .meta-chips {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0;
+    margin-top: 26px;
+  }
+
+  .chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 26px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(6px);
+  }
+
+  .chip:not(:first-child) {
+    border-left: 1px solid rgba(125, 211, 252, 0.15);
+  }
+
+  .chip:first-child { border-radius: 10px 0 0 10px; border: 1px solid rgba(125, 211, 252, 0.15); border-right: none; }
+  .chip:last-child { border-radius: 0 10px 10px 0; border: 1px solid rgba(125, 211, 252, 0.15); border-left: none; }
+  .chip:not(:first-child):not(:last-child) { border-top: 1px solid rgba(125, 211, 252, 0.15); border-bottom: 1px solid rgba(125, 211, 252, 0.15); }
+
+  .chip-label {
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    opacity: 0.6;
+  }
+
+  .chip-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: #e8ecf6;
+  }
+
+  .chip-accent-good { color: #34d399; }
+  .chip-accent-warn { color: #fbbf24; }
+  .chip-accent-bad { color: #f87171; }
+  .chip-accent-info { color: #7dd3fc; }
+
+  .print-btn {
+    position: relative;
+    z-index: 1;
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: 1px solid rgba(125, 211, 252, 0.3);
+    background: rgba(125, 211, 252, 0.08);
+    color: #e8ecf6;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: background 0.15s ease, transform 0.1s ease;
+    white-space: nowrap;
+  }
+  .print-btn:hover { background: rgba(125, 211, 252, 0.16); }
+  .print-btn:active { transform: translateY(1px); }
+
+  .container { padding: 32px 44px 60px; max-width: 1280px; margin: 0 auto; }
+
+  h2 {
+    font-size: 19px;
+    margin: 36px 0 16px;
+    color: var(--text);
+  }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 18px;
+  }
+
+  .card {
+    background: var(--card-bg);
+    border-radius: 14px;
+    padding: 22px 24px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+    border: 1px solid var(--border);
+  }
+
+  .card h3 {
+    margin: 0 0 10px;
+    color: var(--text-muted);
+    font-size: 12.5px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .number { font-size: 32px; font-weight: 700; line-height: 1; }
+  .green { color: var(--green); }
+  .red { color: var(--red); }
+  .blue { color: var(--blue-mid); }
+  .orange { color: var(--orange); }
+/* 
+  .summary-row {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 28px;
+    align-items: center;
+  } */
+
+  /* .donut {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    background: conic-gradient(var(--green) 0% ${successRate}%, #fee2e2 ${successRate}% 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    box-shadow: inset 0 0 0 14px white, 0 4px 16px rgba(15,23,42,0.08);
+  } */
+
+  .donut {
+    --success-rate: 0%;
+
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+
+    background: conic-gradient(
+        var(--green) 0% var(--success-rate),
+        #fee2e2 var(--success-rate) 100%
+    );
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    margin: 0 auto;
+
+    box-shadow:
+        inset 0 0 0 14px #fff,
+        0 4px 16px rgba(15, 23, 42, .08);
+
+    flex-shrink: 0;
+}
+
+
+/* .donut-label {
+    width: 130px;
+    height: 130px;
+
+    border-radius: 50%;
+    background: #fff;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.pct {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--green);
+}
+
+.lbl {
+    margin-top: 4px;
+    color: #64748b;
+    font-size: .9rem;
+} */
+
+.summary-row {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 24px;
+}
+
+.summary-details {
+    flex: 1;
+}
+
+  .donut-label { text-align: center; }
+  .donut-label .pct { font-size: 26px; font-weight: 700; color: var(--text); }
+  .donut-label .lbl { font-size: 11px; color: #eaedf2; text-transform: uppercase; letter-spacing: 0.5px; } 
+
+
+.progress {
+    --progress-width: 0%;
+
+    width: 100%;
+    height: 14px;
+
+    background: #fee2e2;
+    border-radius: 20px;
+
+    overflow: hidden;
+}
+
+.progress-fill {
+    width: var(--progress-width);
+    height: 100%;
+
+    background: linear-gradient(
+        90deg,
+        #22c55e,
+        #16a34a
+    );
+
+    border-radius: inherit;
+
+    transition: width .5s ease;
+}
+
+
+  /* `screen and` matters here: without it, this rule's width condition is
+     evaluated against the PRINT PAGE's width too. An A4 page's content box
+     (~657px after 18mm margins) falls well under 768px, so this "mobile"
+     breakpoint was silently firing during print/PDF generation, squashing
+     the KPI grid and header into a single narrow column on paper. */
+  @media screen and (max-width: 768px) {
+    .summary-row {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .summary-details {
+        width: 100%;
+    }
+}
+
+
+  .toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    /* flex-wrap: wrap; */
+    margin-bottom: 18px;
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 12px 0;
+    z-index: 5;
+  }
+
+  .filter-btn {
+    padding: 9px 18px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: all 0.15s ease;
+  }
+  .filter-btn.active.all-btn { background: var(--blue-mid); color: white; border-color: var(--blue-mid); }
+  .filter-btn.active.pass-btn { background: var(--green); color: white; border-color: var(--green); }
+  .filter-btn.active.failed-btn { background: var(--red); color: white; border-color: var(--red); }
+
+  #searchInput {
+    flex: 1;
+    min-width: 200px;
+    padding: 9px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .test-card {
+    background: var(--card-bg);
+    border-left: 6px solid var(--green);
+    padding: 20px 24px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+  }
+  .test-card:hover { box-shadow: 0 6px 22px rgba(15, 23, 42, 0.1); }
+  .test-card[data-status="failed"] {
+    border-left-color: var(--red);
+    background: linear-gradient(0deg, #fff, #fff), #fff5f5;
+    background: #fff7f7;
+  }
+  .test-card[data-status="failed"] .method-badge { background: #fee2e2; color: #991b1b; }
+  .status-ok { color: var(--green); font-weight: 700; }
+  .status-bad { color: var(--red); font-weight: 700; }
+
+  .test-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .test-card h3 { margin: 0; font-size: 15.5px; display: flex; align-items: center; gap: 8px; }
+
+  .method-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: #eef2ff;
+    color: #3730a3;
+    letter-spacing: 0.4px;
+  }
+
+  .meta-row {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin: 10px 0;
+  }
+
+  .badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11.5px;
+    font-weight: 700;
+  }
+  .pass { background: #dcfce7; color: #166534; }
+  .fail { background: #fee2e2; color: #991b1b; }
+
+  details { margin-top: 8px; }
+  summary {
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--blue-mid);
+    outline: none;
+  }
+
+  pre {
+    background: #0f172a;
+    color: #e2e8f0;
+    padding: 14px 16px;
+    border-radius: 10px;
+    overflow: auto;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin-top: 10px;
+    max-height: 340px;
+  }
+
+  .failure-list pre {
+    background: #2a0f14;
+    color: #fecaca;
+    margin-top: 6px;
+  }
+
+  .empty-state {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 40px;
+    font-size: 14px;
+  }
+
+  .all-clear-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #ecfdf5, #f0fdfa);
+    border: 1px solid #a7f3d0;
+    border-radius: 14px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+  }
+
+  .all-clear-emoji {
+    font-size: 32px;
+    line-height: 1;
+  }
+
+  .all-clear-banner strong {
+    display: block;
+    color: #065f46;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+
+  .all-clear-banner span {
+    color: #047857;
+    font-size: 13px;
+  }
+
+  .footer {
+    margin-top: 48px;
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+    .endpoint-row {
+    margin: 12px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.endpoint-row strong {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: .4px;
+}
+
+.endpoint-row code {
+    display: block;
+    background: #f8fafc;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-family: Consolas, Monaco, monospace;
+    color: var(--blue-deep);
+    word-break: break-word;
+    white-space: pre-wrap;
+}
+
+/* ==========================================
+   Mobile Responsiveness
+   `screen and` is required on both breakpoints below -- see the comment on
+   the first (max-width: 768px) block above for why an unscoped max-width
+   query breaks print/PDF pagination.
+   ========================================== */
+
+@media screen and (max-width: 768px) {
+
+    body {
+        font-size: 14px;
+    }
+
+
+    /* Header */
+    .header {
+        padding: 22px 20px 28px;
+    }
+
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+    }
+
+    .meta-chips {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .chip {
+        border-radius: 10px !important;
+        width: 100%;
+    }
+
+    .chip:not(:first-child) {
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.18);
+    }
+
+    .print-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+
+    /* Main container */
+    .container {
+        padding: 20px 16px 40px;
+    }
+
+
+    h2 {
+        font-size: 17px;
+        margin-top: 28px;
+    }
+
+
+    /* Summary cards */
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+
+
+    .card {
+        padding: 18px;
+        border-radius: 12px;
+    }
+
+
+    .number {
+        font-size: 28px;
+    }
+
+
+    /* Success rate section */
+    .summary-row {
+        flex-direction: column;
+        gap: 20px;
+        padding: 18px;
+        text-align: center;
+    }
+
+
+    .summary-details {
+        width: 100%;
+    }
+
+
+    .donut {
+        width: 150px;
+        height: 150px;
+    }
+
+
+    .donut-label .pct {
+        font-size: 22px;
+    }
+
+
+    /* Toolbar */
+    .toolbar {
+        position: static;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+
+    .filter-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+
+    #searchInput {
+        width: 100%;
+        min-width: unset;
+    }
+
+
+    /* Test cards */
+    .test-card {
+        padding: 16px;
+        border-left-width: 4px;
+    }
+
+
+    .test-card-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+
+    .test-card h3 {
+        font-size: 14px;
+        flex-wrap: wrap;
+    }
+
+
+    .meta-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+
+    /* Endpoint display */
+    .endpoint-row code {
+        font-size: 11px;
+        padding: 8px;
+    }
+
+
+    /* JSON response blocks */
+    pre {
+        font-size: 11px;
+        padding: 12px;
+        max-height: 250px;
+    }
+
+
+    .footer {
+        margin-top: 30px;
+        padding: 16px;
+    }
+
+}
+
+
+
+
+/* ==========================================
+   Small phones
+   ========================================== */
+
+@media screen and (max-width: 480px) {
+
+
+    .header {
+        padding: 18px 16px 22px;
+    }
+
+
+    .header h1 {
+        font-size: 19px;
+    }
+
+
+    .container {
+        padding: 16px 12px 30px;
+    }
+
+
+    .donut {
+        width: 130px;
+        height: 130px;
+    }
+
+
+    .donut-label .pct {
+        font-size: 20px;
+    }
+
+
+    .donut-label .lbl {
+        font-size: 10px;
+    }
+
+
+    .card h3 {
+        font-size: 11px;
+    }
+
+
+    .number {
+        font-size: 24px;
+    }
+
+
+    .filter-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+
+    .method-badge {
+        font-size: 10px;
+    }
+
+
+    .badge {
+        font-size: 10px;
+    }
+
+}
+
+/* ==========================================
+   PDF / Print Layout
+   ========================================== */
+
+@media print {
+
+    @page {
+        size: A4;
+        margin: 18mm;
+    }
+
+
+    body {
+        background: white;
+        color: #1f2430;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+
+    .header {
+        text-align: center;
+        padding: 20px 25px 26px;
+        box-shadow: none;
+        page-break-after: avoid;
+    }
+
+    .header-top {
+        display: none;
+    }
+
+    .meta-chips {
+        margin-top: 18px;
+    }
+
+    .chip {
+        padding: 8px 18px;
+    }
+
+
+    .cards {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .cards > .card {
+        flex: 1 1 140px;
+    }
+
+
+    .container {
+        width: 100%;
+        max-width: none;
+        padding: 0;
+    }
+
+
+    h2 {
+        page-break-after: avoid;
+        margin-top: 25px;
+    }
+
+
+    /* Keep individual cards from splitting mid-block; don't apply this to the
+       outer .report-section wrapper -- that section can be much taller than
+       a single page, and forcing "avoid" on something taller than the page
+       causes broken/blank-page pagination instead of clean breaks. */
+    .card,
+    .test-card,
+    .summary-row {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+
+    /* Summary section */
+    .summary-row {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+
+    .donut {
+        width: 150px;
+        height: 150px;
+        box-shadow: none;
+    }
+
+
+    .card {
+        box-shadow: none;
+    }
+
+
+    /* Progress bar */
+    .progress {
+        height: 12px;
+    }
+
+
+    /* Test results -- keep the same colored left-accent + tint used on
+       screen so pass/fail is still visually scannable on paper, not just
+       inside a plain grey box. Longhand border-left is set explicitly
+       (rather than the `border` shorthand) so the 6px accent width survives
+       instead of collapsing to a uniform 1px border on every side. */
+    .test-card {
+        box-shadow: none;
+        border: 1px solid #e5e9f0;
+        border-left: 6px solid var(--green);
+        margin-bottom: 14px;
+        background: white;
+    }
+
+    .test-card[data-status="failed"] {
+        border-left-color: var(--red);
+        background: #fff7f7;
+    }
+
+    .method-badge {
+        border: 1px solid #e0e7ff;
+    }
+
+
+    /* Hide interactive UI that has no meaning on paper */
+    .toolbar,
+    button,
+    .print-btn {
+        display: none !important;
+    }
+
+
+    /* Make URLs and code readable, and never truncated/scrolling */
+    pre {
+        white-space: pre-wrap;
+        /* word-break: break-word; */
+        max-height: none;
+        overflow: visible;
+        overflow-wrap:anywhere;
+        font-size: 11px;
+    }
+
+
+    .footer {
+        page-break-before: avoid;
+        margin-top: 20px;
+        padding-top: 14px;
+        font-size: 10px;
+    }
+
+    details {
+        display: block;
+    }
+
+    /* summary {
+        display: block;
+        cursor: default;
+        list-style: none;
+        color: var(--text-muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        margin: 12px 0 6px;
+    } */
+    summary { display:none}
+
+    summary::-webkit-details-marker {
+        display: none;
+    }
+
+    summary::marker {
+        content: '';
+    }
+
+}
+

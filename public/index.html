@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Newman Reporter — Run your collection, get a report</title>
+<meta name="description" content="Drop in a Postman collection and get back a sanitized, interactive test report. No CLI required.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="grid-overlay" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">
+      <span class="logo-mark">&gt;_</span>
+      <span class="logo-text">newman<span class="logo-accent">reporter</span></span>
+    </div>
+    <a class="topbar-link" href="#how-it-works">How it works</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ HERO ============ -->
+  <section class="hero">
+    <div class="hero-inner">
+
+      <div class="hero-copy">
+        <p class="eyebrow">POST /collection &rarr; 200 OK</p>
+        <h1>Run your Postman collection<br>without touching the CLI.</h1>
+        <p class="hero-sub">
+          Drop your <code>.postman_collection.json</code> below. We run it through Newman on the backend,
+          strip every token, cookie, and secret, and hand you back a clean interactive report — no terminal,
+          no <code>node index.js</code>, no manual reporter wiring.
+        </p>
+        <ul class="hero-points">
+          <li><span class="dot dot-green"></span>Headers &amp; secrets redacted automatically</li>
+          <li><span class="dot dot-amber"></span>Pass/fail detection cross-checked against Newman's own failure log</li>
+          <li><span class="dot dot-cyan"></span>Interactive report opens straight in your browser</li>
+        </ul>
+      </div>
+
+      <!-- Functional console / dropzone — this IS the uploader -->
+      <div class="console" id="console">
+        <div class="console-titlebar">
+          <span class="console-dot red"></span>
+          <span class="console-dot amber"></span>
+          <span class="console-dot green"></span>
+          <span class="console-title">collection-runner &mdash; zsh</span>
+        </div>
+
+        <div class="console-body">
+
+          <div class="console-state" id="state-idle">
+            <p class="console-line prompt">$ drop <span class="cursor">&#9608;</span></p>
+
+            <div class="dropzone"
+     id="dropzone"
+     tabindex="0"
+     role="button"
+     aria-label="Upload Postman collection JSON file">
+
+    <!-- Default / empty state -->
+    <div id="dropzoneEmptyState">
+        <svg class="dropzone-icon"
+             width="34"
+             height="34"
+             viewBox="0 0 24 24"
+             fill="none"
+             aria-hidden="true">
+
+            <path
+                d="M12 16V4M12 4L7 9M12 4L17 9"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+            </path>
+
+            <path
+                d="M4 16V18C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18V16"
+                stroke="currentColor"
+                stroke-width="1.6"
+                stroke-linecap="round"
+                stroke-linejoin="round">
+            </path>
+
+        </svg>
+
+        <p class="dropzone-label">
+            Drop <strong>*.postman_collection.json</strong> here
+        </p>
+
+        <p class="dropzone-sub">
+            or click to browse
+        </p>
+    </div>
+
+
+    <!-- Active / selected state -->
+    <div id="dropzoneActiveState" class="hidden">
+
+        <div class="dropzone-active-icon">
+            ✓
+        </div>
+
+        <p class="dropzone-label">
+            <strong id="selectedCollectionName">
+                Collection.json
+            </strong>
+        </p>
+
+        <p class="dropzone-sub">
+            Collection ready — add environment or Submit
+        </p>
+
+    </div>
+
+
+    <input
+        type="file"
+        id="fileInput"
+        accept=".json,application/json"
+        hidden>
+
+</div>
+
+            <div class="action-row">
+
+    <!-- Add Environment -->
+    <div class="env-picker">
+        <label
+            for="envInput"
+            class="env-picker-label"
+            id="envPickerLabel">
+
+            <span class="env-picker-icon">+</span>
+
+            <span id="envFileNameLabel">
+                Add environment file (optional)
+            </span>
+        </label>
+
+        <input
+            type="file"
+            id="envInput"
+            accept=".json,application/json"
+            hidden>
+
+        <button
+            type="button"
+            id="envClearBtn"
+            class="env-clear-btn hidden"
+            aria-label="Remove environment file">
+            ×
+        </button>
+    </div>
+
+
+    <!-- Submit -->
+    <div class="env-picker">
+
+        <button
+            type="button"
+            id="submitBtn"
+            class="env-picker-label submit-btn"
+            disabled>
+
+            <span class="env-picker-icon">▶</span>
+
+            <span>Submit</span>
+
+        </button>
+
+    </div>
+
+</div>
+
+
+            <p class="console-hint">Files never leave this run — reports are sanitized before they're written to disk.</p>
+          </div>
+
+          <div class="console-state hidden" id="state-running">
+            <p class="console-line prompt">$ newman run <span id="runningFileName">collection.json</span></p>
+            <div class="log" id="runLog"></div>
+          </div>
+
+          <div class="console-state hidden" id="state-done">
+            <p class="console-line prompt">$ newman run <span id="doneFileName">collection.json</span></p>
+            <div class="result-summary">
+              <div class="result-row">
+                <span class="result-badge" id="resultBadge">DONE</span>
+                <span id="resultCollectionName" class="result-name">Collection</span>
+                <span id="resultEnvironmentName" class="result-env hidden"></span>
+              </div>
+              <div class="result-stats">
+                <div class="stat">
+                  <span class="stat-value" id="statTotal">0</span>
+                  <span class="stat-label">requests</span>
+                </div>
+                <div class="stat stat-pass">
+                  <span class="stat-value" id="statPassed">0</span>
+                  <span class="stat-label">passed</span>
+                </div>
+                <div class="stat stat-fail">
+                  <span class="stat-value" id="statFailed">0</span>
+                  <span class="stat-label">failed</span>
+                </div>
+                <div class="stat">
+                  <span class="stat-value" id="statRate">0%</span>
+                  <span class="stat-label">pass rate</span>
+                </div>
+              </div>
+              <div class="result-actions">
+                <a id="openReportBtn" class="btn btn-primary" href="#" target="_blank" rel="noopener">Open full report &rarr;</a>
+                <a id="downloadPdfBtn" class="btn btn-ghost hidden" href="#" target="_blank" rel="noopener">Download PDF</a>
+                <a id="downloadJsonBtn" class="btn btn-ghost" href="#" target="_blank" rel="noopener">Download JSON</a>
+                <button class="btn btn-ghost" id="runAnotherBtn" type="button">Run another</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="console-state hidden" id="state-error">
+            <p class="console-line prompt">$ newman run <span id="errorFileName">collection.json</span></p>
+            <p class="console-line error-line">✖ <span id="errorMessage">Something went wrong.</span></p>
+            <button class="btn btn-ghost" id="tryAgainBtn" type="button">Try again</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ FEATURES (styled as request log entries) ============ -->
+  <section class="features" id="features">
+    <p class="section-eyebrow">What runs behind the scenes</p>
+    <div class="feature-log">
+
+      <article class="feature-row">
+        <span class="method-tag method-post">POST</span>
+        <div class="feature-copy">
+          <h3>/collection &rarr; Newman</h3>
+          <p>Your file is parsed in memory and executed through the same Newman engine you'd run from the CLI — every request, script, and assertion behaves identically.</p>
+        </div>
+      </article>
+
+      <article class="feature-row">
+        <span class="method-tag method-delete">DELETE</span>
+        <div class="feature-copy">
+          <h3>/headers, /tokens, /secrets</h3>
+          <p>Request and response headers are stripped outright. Passwords, cookies, API keys, and JWTs are masked wherever they appear — even nested inside a response body.</p>
+        </div>
+      </article>
+
+      <article class="feature-row">
+        <span class="method-tag method-get">GET</span>
+        <div class="feature-copy">
+          <h3>/failures — cross-checked, not guessed</h3>
+          <p>Pass/fail is read from Newman's own failure log and matched back to the exact request that caused it, so nothing gets silently marked "passed."</p>
+        </div>
+      </article>
+
+      <article class="feature-row">
+        <span class="method-tag method-put">PUT</span>
+        <div class="feature-copy">
+          <h3>/report — interactive, shareable</h3>
+          <p>Filter by pass/fail, search by name, jump straight to the first failure, and inspect a redacted response body without leaving the page.</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ============ HOW IT WORKS ============ -->
+  <section class="pipeline" id="how-it-works">
+    <p class="section-eyebrow">The pipeline</p>
+    <div class="pipeline-chain">
+      <div class="pipeline-step">
+        <span class="pipeline-tag">01 &middot; REQUEST</span>
+        <h3>Drop the collection</h3>
+        <p>Upload a <code>.postman_collection.json</code> straight from Postman — no environment setup required for a basic run.</p>
+      </div>
+      <span class="pipeline-arrow" aria-hidden="true">&rarr;</span>
+      <div class="pipeline-step">
+        <span class="pipeline-tag">02 &middot; PROCESS</span>
+        <h3>Newman runs it, we sanitize it</h3>
+        <p>Every request executes on the backend. Headers are removed and secrets masked before a single byte is written to disk.</p>
+      </div>
+      <span class="pipeline-arrow" aria-hidden="true">&rarr;</span>
+      <div class="pipeline-step">
+        <span class="pipeline-tag">03 &middot; RESPONSE</span>
+        <h3>Get your report</h3>
+        <p>An interactive HTML dashboard and a sanitized JSON export, both ready to open, share, or archive.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <p>Reports are generated on this server and redacted before storage. Nothing is sent anywhere else.</p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+{
+  "name": "testvista",
+  "version": "1.0.0",
+  "description": "TestVista — runs Postman collections through Newman, redacts secrets, and generates a premium interactive HTML dashboard (with PDF export) either from the CLI or via a browser upload UI.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node --no-deprecation index.js",
+    "web": "node --no-deprecation server.js"
+  },
+  "keywords": [
+    "newman",
+    "postman",
+    "api-testing",
+    "test-report",
+    "qa-automation"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "multer": "^2.2.0",
+    "newman": "^6.2.2"
+  },
+  "optionalDependencies": {
+    "puppeteer": "^23.0.0"
+  }
+}

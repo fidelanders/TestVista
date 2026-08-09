@@ -1,0 +1,456 @@
+{
+  "info": {
+    "_postman_id": "4249c379-5a03-4254-9059-187303ed3d72",
+    "name": "Sample APIs Test Collection",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "16533226",
+    "_collection_link": "https://go.postman.co/collection/16533226-4249c379-5a03-4254-9059-187303ed3d72?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "api/register",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has id and token\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"id\");",
+              "    pm.expect(jsonData).to.have.property(\"token\");",
+              "});",
+              "",
+              "pm.test(\"id is a number\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.id).to.be.a(\"number\");",
+              "});",
+              "",
+              "pm.test(\"token is a non-empty string\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.be.a(\"string\").and.not.empty;",
+              "});",
+              "",
+              "pm.test(\"Content-Type is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "free_user_3HTzTB2nO4qWOANejHZd5UszBrA"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"email\": \"eve.holt@reqres.in\",\r\n  \"password\": \"pistol\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://reqres.in/api/register",
+          "protocol": "https",
+          "host": [
+            "reqres",
+            "in"
+          ],
+          "path": [
+            "api",
+            "register"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST 'https://reqres.in/api/register' -H 'x-api-key: free_user_3HTzTB2nO4qWOANejHZd5UszBrA' -H 'Content-Type: application/json' -d '{\"email\": \"eve.holt@reqres.in\", \"password\": \"pistol\"}'"
+      },
+      "response": []
+    },
+    {
+      "name": "api/login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has token\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"token\");",
+              "});",
+              "",
+              "pm.test(\"Token is a non-empty string\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.token).to.be.a(\"string\").and.not.empty;",
+              "});",
+              "",
+              "pm.test(\"Content-Type is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});",
+              "",
+              "// Save token for use in other requests",
+              "pm.test(\"Save token to environment\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    if (jsonData.token) {",
+              "        pm.collectionVariables.set(\"authToken\", jsonData.token);",
+              "    }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "free_user_3HTzTB2nO4qWOANejHZd5UszBrA"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"eve.holt@reqres.in\", \"password\": \"cityslicka\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://reqres.in/api/login",
+          "protocol": "https",
+          "host": [
+            "reqres",
+            "in"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "description": "Generated from cURL: curl -X POST 'https://reqres.in/api/login' -H 'x-api-key: free_user_3HTzTB2nO4qWOANejHZd5UszBrA' -H 'Content-Type: application/json' -d '{\"email\": \"eve.holt@reqres.in\", \"password\": \"cityslicka\"}'"
+      },
+      "response": []
+    },
+    {
+      "name": "api/users/2",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has name, job, and updatedAt\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"name\");",
+              "    pm.expect(jsonData).to.have.property(\"job\");",
+              "    pm.expect(jsonData).to.have.property(\"updatedAt\");",
+              "});",
+              "",
+              "pm.test(\"Name is updated to morpheus\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.name).to.eql(\"morpheus\");",
+              "});",
+              "",
+              "pm.test(\"Job is updated to zion resident\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.job).to.eql(\"zion resident\");",
+              "});",
+              "",
+              "pm.test(\"updatedAt is a valid date string\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(new Date(jsonData.updatedAt).toString()).to.not.eql(\"Invalid Date\");",
+              "});",
+              "",
+              "pm.test(\"Content-Type is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "free_user_3HTzTB2nO4qWOANejHZd5UszBrA"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\": \"morpheus\", \"job\": \"zion resident\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "https://reqres.in/api/users/2",
+          "protocol": "https",
+          "host": [
+            "reqres",
+            "in"
+          ],
+          "path": [
+            "api",
+            "users",
+            "2"
+          ]
+        },
+        "description": "Generated from cURL: curl -X PUT 'https://reqres.in/api/users/2' -H 'x-api-key: free_user_3HTzTB2nO4qWOANejHZd5UszBrA' -H 'Content-Type: application/json' -d '{\"name\": \"morpheus\", \"job\": \"zion resident\"}'"
+      },
+      "response": []
+    },
+    {
+      "name": "api/users?page=1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has pagination fields\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"page\");",
+              "    pm.expect(jsonData).to.have.property(\"per_page\");",
+              "    pm.expect(jsonData).to.have.property(\"total\");",
+              "    pm.expect(jsonData).to.have.property(\"total_pages\");",
+              "});",
+              "",
+              "pm.test(\"Response has data array\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"data\");",
+              "    pm.expect(jsonData.data).to.be.an(\"array\");",
+              "});",
+              "",
+              "pm.test(\"Data array is not empty\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.length).to.be.above(0);",
+              "});",
+              "",
+              "pm.test(\"Each user has id, email, first_name, last_name, avatar\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    jsonData.data.forEach(function(user) {",
+              "        pm.expect(user).to.have.property(\"id\");",
+              "        pm.expect(user).to.have.property(\"email\");",
+              "        pm.expect(user).to.have.property(\"first_name\");",
+              "        pm.expect(user).to.have.property(\"last_name\");",
+              "        pm.expect(user).to.have.property(\"avatar\");",
+              "    });",
+              "});",
+              "",
+              "pm.test(\"Content-Type is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "free_user_3HTzTB2nO4qWOANejHZd5UszBrA"
+          }
+        ],
+        "url": {
+          "raw": "https://reqres.in/api/users?page=2",
+          "protocol": "https",
+          "host": [
+            "reqres",
+            "in"
+          ],
+          "path": [
+            "api",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "2"
+            }
+          ]
+        },
+        "description": "Generated from cURL: curl -X GET 'https://reqres.in/api/users?page=2' -H 'x-api-key: free_user_3HTzTB2nO4qWOANejHZd5UszBrA'"
+      },
+      "response": []
+    },
+    {
+      "name": "api/users/1",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 3000ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(3000);",
+              "});",
+              "",
+              "pm.test(\"Response has data object\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"data\");",
+              "    pm.expect(jsonData.data).to.be.an(\"object\");",
+              "});",
+              "",
+              "pm.test(\"User data has required fields\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data).to.have.property(\"id\");",
+              "    pm.expect(jsonData.data).to.have.property(\"email\");",
+              "    pm.expect(jsonData.data).to.have.property(\"first_name\");",
+              "    pm.expect(jsonData.data).to.have.property(\"last_name\");",
+              "    pm.expect(jsonData.data).to.have.property(\"avatar\");",
+              "});",
+              "",
+              "pm.test(\"User id is 2\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.id).to.eql(2);",
+              "});",
+              "",
+              "pm.test(\"Email is a valid format\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData.data.email).to.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/);",
+              "});",
+              "",
+              "pm.test(\"Response has support object\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"support\");",
+              "    pm.expect(jsonData.support).to.have.property(\"url\");",
+              "    pm.expect(jsonData.support).to.have.property(\"text\");",
+              "});",
+              "",
+              "pm.test(\"Content-Type is application/json\", function () {",
+              "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "x-api-key",
+            "value": "free_user_3HTzTB2nO4qWOANejHZd5UszBrA"
+          }
+        ],
+        "url": {
+          "raw": "https://reqres.in/api/users/2",
+          "protocol": "https",
+          "host": [
+            "reqres",
+            "in"
+          ],
+          "path": [
+            "api",
+            "users",
+            "2"
+          ]
+        },
+        "description": "Generated from cURL: curl -X GET 'https://reqres.in/api/users/2' -H 'x-api-key: free_user_3HTzTB2nO4qWOANejHZd5UszBrA'"
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{authorization_secret}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "authToken",
+      "value": ""
+    }
+  ]
+}

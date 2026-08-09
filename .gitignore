@@ -1,0 +1,11 @@
+node_modules/
+
+# Generated reports — these are build output, not source
+reports/*.html
+reports/*.json
+reports/*.pdf
+!reports/.gitkeep
+
+npm-debug.log*
+.env
+.DS_Store
