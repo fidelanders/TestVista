@@ -229,18 +229,18 @@ function runCollection({ collection, environment, reportBaseName = 'report' }) {
 
                     await fs.promises.writeFile(
                         jsonReportPath,
-                        JSON.stringify(report, null, 2)
-                    );
+                        JSON.stringify(sanitizedSummary, null, 2),
+                    'utf8');
 
 
-                    fs.writeFileSync(
-                        jsonReportPath,
-                        JSON.stringify(
-                            sanitizedSummary,
-                            null,
-                            2
-                        )
-                    );
+                    // fs.writeFileSync(
+                    //     jsonReportPath,
+                    //     JSON.stringify(
+                    //         sanitizedSummary,
+                    //         null,
+                    //         2
+                    //     )
+                    // );
 
 
 
