@@ -4,8 +4,16 @@ function renderTestCards(data){
 
 const {
 testCards,
-failedRequests
+failedRequests,
+iterationsCount
 }=data;
+
+// Only surface iteration-specific UI (badges, the filter dropdown) when
+// there's actually more than one iteration to distinguish -- for a normal
+// single-run report, "Iteration 1" on every card and a dropdown with a
+// single option are pure noise. This is what keeps existing single-run
+// reports looking exactly as they did before Milestone 4.
+const showIterationUI = (iterationsCount ?? 1) > 1;
 
 
 return `
@@ -38,6 +46,20 @@ class="filter-btn failed-btn"
 onclick="filterTests('failed',this)">
 Failed
 </button>
+
+
+${showIterationUI ? `
+<select
+    id="iterationFilterSelect"
+    class="iteration-filter-select"
+    onchange="filterByIteration(this.value)"
+    aria-label="Filter by iteration">
+<option value="all">All Iterations</option>
+${Array.from({ length: iterationsCount }, (_, i) => i + 1).map(n =>
+    `<option value="${n}">Iteration ${n}</option>`
+).join('')}
+</select>
+` : ''}
 
 
 <input 
@@ -90,6 +112,7 @@ testCards.map(t=>`
 <div 
 class="test-card"
 data-status="${t.passed?'passed':'failed'}"
+data-iteration="${escapeHtml(t.iteration)}"
 data-search="${escapeHtml((t.name+' '+t.url).toLowerCase())}">
 
 
@@ -102,11 +125,19 @@ ${escapeHtml(t.name)}
 </h3>
 
 
-<span class="badge ${t.passed?'pass':'fail'}">
+<div class="test-card-badges">
 
-${t.passed?'PASSED':'FAILED'}
-
+${showIterationUI ? `
+<span class="badge iteration-badge">
+Iteration ${escapeHtml(t.iteration)}
 </span>
+` : ''}
+
+<span class="badge ${t.passed?'pass':'fail'}">
+${t.passed?'PASSED':'FAILED'}
+</span>
+
+</div>
 
 
 </div>

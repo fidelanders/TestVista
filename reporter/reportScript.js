@@ -1,4 +1,5 @@
 let currentFilter = 'all';
+let currentIteration = 'all';
 
 function applyFilters() {
     const q = document
@@ -9,6 +10,7 @@ function applyFilters() {
 
     document.querySelectorAll('.test-card').forEach(card => {
         const status = card.dataset.status;
+        const iteration = card.dataset.iteration;
 
         const haystack =
             (card.dataset.search || '').toLowerCase();
@@ -17,11 +19,15 @@ function applyFilters() {
             currentFilter === 'all' ||
             status === currentFilter;
 
+        const matchesIteration =
+            currentIteration === 'all' ||
+            iteration === currentIteration;
+
         const matchesSearch =
             haystack.includes(q);
 
         card.style.display =
-            matchesStatus && matchesSearch
+            matchesStatus && matchesIteration && matchesSearch
                 ? 'block'
                 : 'none';
     });
@@ -50,6 +56,30 @@ function filterTests(type, btn) {
     applyFilters();
 }
 
+function filterByIteration(value) {
+    currentIteration = value;
+    applyFilters();
+}
+
+// Clicking a row in the "Iteration Overview" table filters the request
+// list below AND keeps the toolbar's iteration <select> in sync, so the two
+// controls never show contradictory state (e.g. the table having "driven"
+// a filter the dropdown still shows as "All Iterations").
+function filterByIterationFromTable(iterationNumber) {
+    const select = document.getElementById('iterationFilterSelect');
+
+    if (select) {
+        select.value = String(iterationNumber);
+    }
+
+    filterByIteration(String(iterationNumber));
+
+    const container = document.getElementById('testCardContainer');
+    if (container && typeof container.scrollIntoView === 'function') {
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
 function searchTests() {
     applyFilters();
 }
@@ -63,10 +93,12 @@ function jumpToFirstFailure() {
 
     if (!firstFailure) return;
 
-    firstFailure.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-    });
+    if (typeof firstFailure.scrollIntoView === 'function') {
+        firstFailure.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
 
     firstFailure.style.backgroundColor = '#fee2e2';
 firstFailure.style.border = '2px solid #dc2626';

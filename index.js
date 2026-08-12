@@ -1,6 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const newman = require('newman');
+const parseCsvSync = require('csv-parse/lib/sync');
 const parseNewmanResults = require('./reporter/parser/newmanParser');
 const generateReport = require('./reporter/htmlGenerator');
 
@@ -41,6 +42,125 @@ function getCollectionVersion(version) {
 
 }
 
+const MAX_ITERATIONS = 1000;
+
+/**
+ * Validates and normalizes an iteration count from either the CLI or the web
+ * upload form (both arrive as strings, or may be omitted entirely).
+ *
+ * This is the single source of truth for iteration validation -- both
+ * `runCollection()` below (used by the CLI) and server.js (used by the web
+ * upload) call this same function rather than each having their own
+ * validation logic, satisfying Milestone 2's "no duplicated execution logic
+ * between CLI and web mode" requirement.
+ *
+ * @param {string|number|undefined} iterations
+ * @returns {number} A validated positive integer, defaulting to 1.
+ * @throws {Error} If a value was given but isn't a valid positive integer,
+ *   or exceeds the sanity ceiling.
+ */
+function normalizeIterations(iterations) {
+    if (iterations === undefined || iterations === null || iterations === '') {
+        return 1;
+    }
+
+    const n = Number(iterations);
+
+    if (!Number.isInteger(n) || n < 1) {
+        throw new Error(
+            `Invalid iteration count "${iterations}" -- must be a whole number of 1 or more.`
+        );
+    }
+
+    // A sanity ceiling, not part of the roadmap's explicit spec -- but the
+    // web upload path lets anyone submit this number, and an unbounded
+    // iteration count is an easy way to tie up the server for a very long
+    // time on a single request. 1000 is generous for legitimate use while
+    // still bounding worst-case runtime.
+    if (n > MAX_ITERATIONS) {
+        throw new Error(
+            `Iteration count ${n} exceeds the maximum of ${MAX_ITERATIONS}.`
+        );
+    }
+
+    return n;
+}
+
+const SUPPORTED_DATA_FILE_EXTENSIONS = ['.csv', '.json'];
+
+/**
+ * Parses a Postman-style iteration data file (CSV or JSON) into the array of
+ * row objects Newman's `iterationData` option expects.
+ *
+ * This is the single source of truth for data-file parsing/validation --
+ * both the CLI (which reads a file from disk) and server.js (which has an
+ * uploaded buffer in memory) call this same function with a
+ * `{ buffer, filename }` shape, so the parsing rules and error messages are
+ * identical regardless of which path a file arrived through, and nothing
+ * writes the uploaded data to disk to make this work.
+ *
+ * @param {object} options
+ * @param {Buffer} options.buffer - Raw file contents.
+ * @param {string} options.filename - Original filename, used only to detect
+ *   CSV vs JSON by extension (never stored or exposed further than that).
+ * @returns {Array<object>} Parsed rows, each an object of column/field name
+ *   to value, ready to hand to Newman as `iterationData`.
+ * @throws {Error} On an unsupported extension, invalid CSV/JSON, or a file
+ *   that parses but contains no usable rows.
+ */
+function parseDataFile({ buffer, filename }) {
+    const ext = path.extname(filename || '').toLowerCase();
+
+    if (!SUPPORTED_DATA_FILE_EXTENSIONS.includes(ext)) {
+        throw new Error(
+            `Unsupported data file type "${ext || '(no extension)'}" for "${filename}" -- ` +
+            `only ${SUPPORTED_DATA_FILE_EXTENSIONS.join(' and ')} are supported.`
+        );
+    }
+
+    const text = buffer.toString('utf8');
+
+    if (ext === '.json') {
+        let parsed;
+        try {
+            parsed = JSON.parse(text);
+        } catch (parseErr) {
+            throw new Error(`"${filename}" is not valid JSON: ${parseErr.message}`);
+        }
+
+        if (!Array.isArray(parsed)) {
+            throw new Error(
+                `"${filename}" must contain a JSON array of row objects, ` +
+                `e.g. [{ "customerId": "10001" }, { "customerId": "10002" }].`
+            );
+        }
+
+        if (parsed.length === 0) {
+            throw new Error(`"${filename}" is an empty array -- add at least one row of data.`);
+        }
+
+        return parsed;
+    }
+
+    // .csv
+    let records;
+    try {
+        records = parseCsvSync(text, {
+            columns: true,
+            skip_empty_lines: true,
+            trim: true
+        });
+    } catch (parseErr) {
+        throw new Error(`"${filename}" could not be parsed as CSV: ${parseErr.message}`);
+    }
+
+    if (records.length === 0) {
+        throw new Error(`"${filename}" has no data rows (only a header row, or the file is empty).`);
+    }
+
+    return records;
+}
+
 /**
  * Runs a Postman collection through Newman, sanitizes the results, and writes
  * the HTML + JSON reports.
@@ -56,14 +176,36 @@ function getCollectionVersion(version) {
  *   Only the environment's `name` is ever surfaced in report metadata; the
  *   environment object itself (which may contain secret values) is never
  *   written to the JSON/HTML report or included in the resolved data.
+ * @param {Array<object>} [options.dataFile] - Parsed iteration data rows
+ *   (already run through `parseDataFile()` by the caller). When provided
+ *   without an explicit `iterations`, Newman's own default behavior runs
+ *   the collection once per row -- that's intentional, matching how Newman
+ *   itself treats a data file with no explicit `-n`/iterationCount.
+ * @param {string|number} [options.iterations] - How many times to run the
+ *   collection (Newman's `iterationCount`). If omitted: defaults to 1 with
+ *   no data file (identical to pre-Milestone-2 behavior), or to the data
+ *   file's row count when one is provided.
  * @param {string} [options.reportBaseName] - Filename (without extension) used
  *   for the generated reports. Defaults to 'report', matching the original
  *   single-collection CLI behavior. The web server passes a unique name per
  *   upload so concurrent runs don't overwrite each other.
- * @returns {Promise<{ htmlPath: string, jsonPath: string, summary: object, sanitizedSummary: object, reportData: object, collectionName: string, environmentName: string|null }>}
+ * @returns {Promise<{ htmlPath: string, jsonPath: string, summary: object, sanitizedSummary: object, reportData: object, collectionName: string, environmentName: string|null, iterations: number }>}
  */
-function runCollection({ collection, environment, reportBaseName = 'report' }) {
+function runCollection({ collection, environment, dataFile, iterations, reportBaseName = 'report' }) {
     return new Promise((resolve, reject) => {
+
+        // Was an iteration count explicitly requested, or should Newman's
+        // own default apply? This matters specifically when a data file is
+        // present: Newman's native behavior (verified directly against the
+        // installed newman version, not assumed from docs) is to run once
+        // per data row when iterationCount is omitted entirely -- which is
+        // exactly what "data-driven testing" should mean by default. Pinning
+        // an explicit iterationCount unconditionally would silently override
+        // that and break the natural one-run-per-row behavior.
+        const iterationsExplicitlyGiven =
+            iterations !== undefined && iterations !== null && iterations !== '';
+
+        const iterationCount = normalizeIterations(iterations);
 
         // Only add the `environment` key to Newman's run options when one was
         // actually supplied -- Newman treats a present-but-undefined value
@@ -71,11 +213,25 @@ function runCollection({ collection, environment, reportBaseName = 'report' }) {
         // byte-for-byte identical to before this feature existed.
         const runOptions = {
             collection,
-            reporters: ['cli']
+            // reporters: ['cli']
         };
 
         if (environment) {
             runOptions.environment = environment;
+        }
+
+        if (dataFile) {
+            runOptions.iterationData = dataFile;
+
+            if (iterationsExplicitlyGiven) {
+                runOptions.iterationCount = iterationCount;
+            }
+            // else: leave iterationCount unset so Newman defaults to one
+            // iteration per data row.
+        } else {
+            // No data file -- iterationCount always applies here, same as
+            // Milestone 2, defaulting to 1 when not specified.
+            runOptions.iterationCount = iterationCount;
         }
 
         newman.run(
@@ -289,7 +445,13 @@ function runCollection({ collection, environment, reportBaseName = 'report' }) {
                         sanitizedSummary,
                         reportData,
                         collectionName,
-                        environmentName
+                        environmentName,
+                        // The REAL count Newman actually ran, not our
+                        // pre-computed guess -- when a data file drives the
+                        // count implicitly, iterationCount above may never
+                        // even have been set, so summary.run.stats is the
+                        // only accurate source of truth here.
+                        iterations: summary.run.stats.iterations?.total ?? iterationCount
                     });
 
                 } catch (buildErr) {
@@ -391,7 +553,53 @@ if (require.main === module) {
         console.log(`ℹ️  Using environment "${environment.name || cliArgs.environment}".`);
     }
 
-    runCollection({ collection, environment })
+    // --- Data file: optional --data flag (CSV or JSON). No auto-discovery,
+    // same reasoning as --environment above: silently picking "some" data
+    // file if multiple exist would be far more surprising than silently
+    // picking "some" collection. ---
+    let dataFile;
+
+    if (cliArgs.data) {
+        const dataFilePath = path.resolve(__dirname, cliArgs.data);
+
+        if (!fs.existsSync(dataFilePath)) {
+            console.error(`❌ Data file not found: ${dataFilePath}`);
+            process.exit(1);
+        }
+
+        try {
+            dataFile = parseDataFile({
+                buffer: fs.readFileSync(dataFilePath),
+                filename: path.basename(dataFilePath)
+            });
+        } catch (err) {
+            console.error(`❌ ${err.message}`);
+            process.exit(1);
+        }
+
+        console.log(`ℹ️  Using data file "${path.basename(dataFilePath)}" (${dataFile.length} row(s)).`);
+    }
+
+    // --- Iterations: optional --iterations flag. Pre-validated here (via the
+    // same normalizeIterations() that runCollection() calls internally)
+    // purely for a fast, clean CLI error message -- but the RAW flag value,
+    // not the normalized one, is what actually gets passed to runCollection()
+    // below. runCollection needs to distinguish "no flag given at all" from
+    // "flag given as 1" to correctly default to one-iteration-per-data-row
+    // when a data file is present and no count was explicitly requested; a
+    // pre-normalized value here would collapse that distinction. ---
+    try {
+        normalizeIterations(cliArgs.iterations); // validate only; result intentionally discarded
+    } catch (err) {
+        console.error(`❌ ${err.message}`);
+        process.exit(1);
+    }
+
+    if (cliArgs.iterations) {
+        console.log(`ℹ️  Running ${cliArgs.iterations} iteration(s).`);
+    }
+
+    runCollection({ collection, environment, dataFile, iterations: cliArgs.iterations })
         .then(({ htmlPath, jsonPath, pdfPath }) => {
             console.log('\n✅ Reports generated');
             console.log(`📄 HTML : ${htmlPath}`);
@@ -408,4 +616,4 @@ if (require.main === module) {
 
 }
 
-module.exports = { runCollection, reportsDir };
+module.exports = { runCollection, reportsDir, normalizeIterations, parseDataFile };

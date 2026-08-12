@@ -282,11 +282,86 @@ TestVista can resolve a Postman environment file (`.postman_environment.json`) a
 
 ---
 
+## 🔁 Running Multiple Iterations
+
+TestVista can run a collection more than once in a single execution — the same as Newman's own `-n`/`--iteration-count` flag — useful for basic load smoke-testing or shaking out flaky endpoints.
+
+```bash
+node index.js --iterations 5
+```
+
+Or via the web upload UI: set the "×" iterations field (defaults to 1) before clicking Submit.
+
+- Accepts any whole number from 1–1000 (the upper bound exists to stop the public web form from being used to tie up the server with an unbounded run — raise `MAX_ITERATIONS` in `index.js` if you genuinely need more).
+- Invalid values (`0`, negative numbers, non-integers, anything above the ceiling) are rejected with a clear error — a `400` on the web upload, a clean CLI exit on the command line — rather than silently clamping to something else.
+- The report labels which iteration each request belongs to and lets you filter by it — see "Iteration-Aware Reporting" below.
+
+<br>
+
+---
+
+## 📊 Data-Driven Testing (CSV / JSON)
+
+TestVista can drive a collection's iterations from an external data file — the same as Newman's own `-d`/`--iteration-data` flag — so each run pulls real values (customer IDs, emails, whatever your requests reference as `{{variableName}}`) from a row of data instead of being hardcoded.
+
+```bash
+node index.js --data data/users.csv
+node index.js --data data/users.json
+```
+
+Or via the web upload UI: attach a file under "Add data file — CSV or JSON (optional)" before clicking Submit.
+
+**CSV format** — first row is the header, becomes the variable names:
+```csv
+customerId,email
+10001,test1@example.com
+10002,test2@example.com
+```
+
+**JSON format** — an array of row objects:
+```json
+[
+  { "customerId": "10001", "email": "test1@example.com" },
+  { "customerId": "10002", "email": "test2@example.com" }
+]
+```
+
+**How the iteration count is decided:**
+- Attach a data file with no `--iterations` flag → runs once per row automatically (3 rows = 3 iterations). This is Newman's own native behavior, not something TestVista layers on top.
+- Attach a data file **and** explicitly set `--iterations N` → your explicit count wins. If `N` is smaller than the row count, only the first `N` rows are used; if larger, Newman reuses/wraps through the data for the extra iterations.
+- No data file → behaves exactly as described in "Running Multiple Iterations" above.
+
+**Validation:** unsupported extensions (anything other than `.csv`/`.json`), malformed CSV or JSON, an empty file, or JSON that isn't an array are all rejected with a specific error before Newman ever runs — a `400` on the web upload, a clean CLI exit with a clear message on the command line.
+
+**Security note:** like collections and environments, an uploaded data file is parsed entirely in memory (via `csv-parse` for CSV) and never written to disk.
+
+<br>
+
+---
+
+## 🔢 Iteration-Aware Reporting
+
+When a run has more than one iteration (via `--iterations` or a data file), the report shows exactly which iteration each request belongs to and how each iteration performed individually — not just an undifferentiated list of repeated requests.
+
+**What you get, only when `iterations > 1`** (a single-run report looks exactly as it always has — nothing below appears for the common case):
+
+- An **"Iterations"** KPI card alongside the existing Total/Passed/Failed/Average Response cards.
+- An **"Iteration Overview" table** — one row per iteration, showing its request count, passed/failed counts, and pass rate, color-coded (green ≥80%, amber 50–79%, red below). Click any row to instantly filter the request list below to just that iteration.
+- Every request card carries an **"Iteration N" badge** next to its Passed/Failed badge.
+- A toolbar **iteration dropdown** that composes with the existing All/Passed/Failed filter and the search box — filter to "Iteration 4" *and* "Failed" *and* search "login" simultaneously, all three narrow the same list together.
+- **Printing/PDF export always includes every iteration**, regardless of what's currently filtered on screen — the same `beforeprint` mechanism that already expands collapsed responses and un-hides filtered cards for printing also resets any active iteration filter for the duration of the print, then restores your on-screen view afterward.
+
+<br>
+
+---
+
 ## 🖱️ Using the Dashboard
 
 | Action | Result |
 |---|---|
 | 🔵 Click **All / Passed / Failed** | Filters requests by outcome |
+| 🔢 Select an **Iteration** from the dropdown *(multi-iteration runs only)* | Filters requests to just that iteration — combines with the status filter and search |
+| 🖱️ Click a row in the **Iteration Overview** table *(multi-iteration runs only)* | Same as above, plus scrolls you to the request list |
 | 🔍 Type in the search box | Live-filters by request name or URL |
 | ⚠️ Click **Jump to First Failure** | Scrolls straight to the first failing request |
 | 🖨️ Click **Print / Save as PDF** | Opens the print dialog with the full report expanded, regardless of any active filter |

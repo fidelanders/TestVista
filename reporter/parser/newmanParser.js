@@ -155,6 +155,13 @@ function parseNewmanResults(summary, sanitizedSummary) {
             rawExec?.cursor?.httpRequestId;
 
 
+        // Newman's cursor.iteration is 0-based; the report displays
+        // 1-based iteration numbers ("Iteration 1", not "Iteration 0"),
+        // matching how a non-technical reader would count runs.
+        const iteration =
+            (rawExec?.cursor?.iteration ?? 0) + 1;
+
+
         const matchedFailures =
             (ref && failuresByRef[ref]) || [];
 
@@ -212,6 +219,8 @@ function parseNewmanResults(summary, sanitizedSummary) {
             responseTime,
 
             passed,
+
+            iteration,
 
             totalAssertions:
                 assertions.length,
@@ -319,6 +328,57 @@ function parseNewmanResults(summary, sanitizedSummary) {
 
 
 
+    // =====================================
+    // Iteration-aware summary
+    // =====================================
+    //
+    // summary.run.stats.iterations.total is Newman's own authoritative count
+    // (verified directly against the installed newman version -- see
+    // Milestone 2/3's notes) rather than something re-derived here, so it
+    // stays correct even in edge cases like iterationCount not matching a
+    // data file's row count.
+
+    const iterationsCount =
+        summary.run.stats.iterations?.total
+        ?? Math.max(...testCards.map(t => t.iteration), 1);
+
+
+    // One row per iteration: how many requests ran, how many passed/failed,
+    // and the pass rate for JUST that iteration -- this is what lets a
+    // reader spot "iteration 4 was the bad one" at a glance instead of
+    // reading through 100 individual cards.
+    const iterationSummary = [];
+
+    for (let i = 1; i <= iterationsCount; i++) {
+
+        const cardsInIteration =
+            testCards.filter(t => t.iteration === i);
+
+        const passedInIteration =
+            cardsInIteration.filter(t => t.passed).length;
+
+        const requestsInIteration =
+            cardsInIteration.length;
+
+        const failedInIteration =
+            requestsInIteration - passedInIteration;
+
+        const passRateInIteration =
+            requestsInIteration
+            ? ((passedInIteration / requestsInIteration) * 100).toFixed(2)
+            : '0.00';
+
+        iterationSummary.push({
+            iteration: i,
+            requests: requestsInIteration,
+            passed: passedInIteration,
+            failed: failedInIteration,
+            passRate: passRateInIteration
+        });
+    }
+
+
+
     return {
 
         testCards,
@@ -334,7 +394,10 @@ function parseNewmanResults(summary, sanitizedSummary) {
         minResponse,
 
         totalAssertions,
-        failedAssertionsCount
+        failedAssertionsCount,
+
+        iterationsCount,
+        iterationSummary
 
     };
 

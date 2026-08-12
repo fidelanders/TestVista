@@ -11,8 +11,15 @@ successRate,
 minResponse,
 maxResponse,
 totalAssertions,
-failedAssertionsCount
+failedAssertionsCount,
+iterationsCount
 }=data;
+
+// Only show an "Iterations" card when there's actually more than one --
+// for a normal single-run report, a card reading "Iterations: 1" is noise,
+// not information. This is what keeps existing single-run reports looking
+// exactly as they did before Milestone 4.
+const showIterationsCard = (iterationsCount ?? 1) > 1;
 
 
 return `
@@ -21,6 +28,15 @@ return `
 
 
 <div class="cards">
+
+${showIterationsCard ? `
+<div class="card">
+<h3>Iterations</h3>
+<div class="number purple">
+${escapeHtml(iterationsCount)}
+</div>
+</div>
+` : ''}
 
 <div class="card">
 <h3>Total Requests</h3>

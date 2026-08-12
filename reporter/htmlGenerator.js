@@ -10,6 +10,10 @@ const summary =
 require('./components/summaryCards');
 
 
+const iterationOverview =
+require('./components/iterationOverview');
+
+
 const testCards =
 require('./components/testCard');
 
@@ -54,6 +58,8 @@ ${header(data)}
 <div class="container">
 
 ${summary(data)}
+
+${iterationOverview(data)}
 
 ${testCards(data)}
 

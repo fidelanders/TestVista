@@ -1,0 +1,4 @@
+[
+  { "customerId": "20001", "email": "jsontest1@example.com" },
+  { "customerId": "20002", "email": "jsontest2@example.com" }
+]

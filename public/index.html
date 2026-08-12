@@ -130,6 +130,39 @@
 
 </div>
 
+            <div class="action-row data-file-row">
+
+    <!-- Add Data File (CSV/JSON) -->
+    <div class="env-picker">
+        <label
+            for="dataFileInput"
+            class="env-picker-label"
+            id="dataFilePickerLabel">
+
+            <span class="env-picker-icon">&equiv;</span>
+
+            <span id="dataFileNameLabel">
+                Add data file — CSV or JSON (optional)
+            </span>
+        </label>
+
+        <input
+            type="file"
+            id="dataFileInput"
+            accept=".csv,.json,text/csv,application/json"
+            hidden>
+
+        <button
+            type="button"
+            id="dataFileClearBtn"
+            class="env-clear-btn hidden"
+            aria-label="Remove data file">
+            ×
+        </button>
+    </div>
+
+</div>
+
             <div class="action-row">
 
     <!-- Add Environment -->
@@ -159,6 +192,28 @@
             aria-label="Remove environment file">
             ×
         </button>
+    </div>
+
+
+    <!-- Iterations -->
+    <div class="env-picker iterations-picker">
+        <label
+            for="iterationsInput"
+            class="iterations-label"
+            title="Number of times to run this collection">
+
+            <span class="env-picker-icon">&times;</span>
+
+            <input
+                type="number"
+                id="iterationsInput"
+                class="iterations-input"
+                min="1"
+                max="1000"
+                step="1"
+                placeholder="1"
+                aria-label="Number of iterations (defaults to 1, or to the data file's row count if one is attached)">
+        </label>
     </div>
 
 
@@ -197,6 +252,7 @@
                 <span class="result-badge" id="resultBadge">DONE</span>
                 <span id="resultCollectionName" class="result-name">Collection</span>
                 <span id="resultEnvironmentName" class="result-env hidden"></span>
+                <span id="resultIterations" class="result-env hidden"></span>
               </div>
               <div class="result-stats">
                 <div class="stat">

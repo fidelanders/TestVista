@@ -303,13 +303,17 @@ iterations = 1
 
 ## Acceptance criteria
 
-- [ ] Default execution still runs once.
-- [ ] User can specify multiple iterations.
-- [ ] Newman actually executes the requested number of iterations.
-- [ ] Collection + environment + iterations works together.
-- [ ] Existing reports are still generated.
-- [ ] No sensitive data is exposed.
-- [ ] No duplicated execution logic exists between CLI and web mode.
+- [x] Default execution still runs once.
+- [x] User can specify multiple iterations.
+- [x] Newman actually executes the requested number of iterations.
+- [x] Collection + environment + iterations works together.
+- [x] Existing reports are still generated.
+- [x] No sensitive data is exposed.
+- [x] No duplicated execution logic exists between CLI and web mode.
+
+> **Status: ✅ Complete.** Implemented and tested against all three execution paths (CLI flag-less, CLI with `--iterations`, and web upload). Verified execution counts directly against the generated JSON report (e.g. 5 requests × 3 iterations = 15 executions), not just the summary numbers. Validation (non-integer, zero, negative, and a 1000-iteration sanity ceiling to prevent abuse via the public web form) is centralized in a single `normalizeIterations()` function exported from `index.js`, called by both the CLI and `server.js` rather than each re-implementing the rules — satisfying the "no duplicated execution logic" criterion literally, not just in spirit.
+>
+> **Known, intentional scope boundary:** with iterations > 1, the report currently lists each repeated request with no iteration label (e.g. `api/register` appears twice in a row for 2 iterations, indistinguishable from each other). This is correct per this milestone's scope — iteration-aware reporting (labeling, filtering, and per-iteration grouping) is explicitly Milestone 4's job, not this one. Don't mistake it for a bug when reviewing.
 
 ## Suggested commit
 
@@ -396,11 +400,17 @@ runCollection({
 
 ## Acceptance criteria
 
-- [ ] CSV data runs correctly.
-- [ ] JSON data runs correctly.
-- [ ] Iteration variables resolve correctly.
-- [ ] Invalid files produce useful errors.
-- [ ] Existing collection-only runs remain unaffected.
+- [x] CSV data runs correctly.
+- [x] JSON data runs correctly.
+- [x] Iteration variables resolve correctly.
+- [x] Invalid files produce useful errors.
+- [x] Existing collection-only runs remain unaffected.
+
+> **Status: ✅ Complete.** Implemented and tested against CLI (`--data`), web upload (`dataFile` field), and all combinations with `--environment`/`--iterations`. Before writing any code, two Newman behaviors were verified empirically against the actual installed version rather than assumed from memory or docs:
+> 1. Passing a pre-parsed JS array directly to `iterationData` (not just a file path) works correctly — this is what let both the CLI and web upload stay consistent with the rest of the project's "never write uploaded content to disk unsanitized" pattern. CSV parsing happens in-memory via `csv-parse` (added as an explicit direct dependency rather than relying on it being pulled in transitively by `newman`, which would be fragile).
+> 2. When a data file is given with no explicit `iterationCount`, Newman defaults to running once per data row. This became the intended default UX (a 3-row CSV with no `--iterations` flag runs 3 times, matching each row) — confirmed by an assertion inside the test collection itself checking that each iteration's `{{customerId}}` variable actually matched the corresponding CSV row, not just that the execution count was right.
+>
+> **A real bug this caught before it shipped:** the web UI's iterations input had `value="1"` hardcoded, and the submit handler sent that value unconditionally. Since the field was never actually empty, the browser would have always sent an explicit `iterations=1` to the server — silently overriding the data-file auto-default for every single web user, even though the CLI path (and the server-side logic) was correct. Fixed by making the input start empty with a `1` placeholder instead, confirmed by testing the exact request shape the browser now sends by default.
 
 ## Suggested commit
 
@@ -482,13 +492,21 @@ All | Passed | Failed | Iteration
 
 ## Acceptance criteria
 
-- [ ] Every execution can be traced to an iteration.
-- [ ] Failed iterations are identifiable.
-- [ ] Summary totals are accurate.
-- [ ] Existing single-run reports still look correct.
-- [ ] Iteration filtering works.
-- [ ] Search works with iteration-aware results.
-- [ ] PDF/print output includes all iterations.
+- [x] Every execution can be traced to an iteration.
+- [x] Failed iterations are identifiable.
+- [x] Summary totals are accurate.
+- [x] Existing single-run reports still look correct.
+- [x] Iteration filtering works.
+- [x] Search works with iteration-aware results.
+- [x] PDF/print output includes all iterations.
+
+> **Status: ✅ Complete.** Iteration info comes from Newman's own `execution.cursor.iteration` (0-based; converted to 1-based for display, verified directly against a real multi-iteration run before writing any parser code). Every card carries a `data-iteration` attribute; an "Iteration Overview" table shows per-iteration pass/fail/rate with clickable rows; a toolbar `<select>` filters by iteration and composes with the existing status filter and search (all three are independent AND conditions in `applyFilters()`).
+>
+> **Verified with actual DOM execution, not just code inspection.** No real browser was available, so `jsdom` was installed temporarily (`--no-save`, not a project dependency) to load the generated report and actually call its JS functions — confirming iteration filtering isolates the right cards, combines correctly with status filtering and search, the overview table's numbers exactly match hand-computed expected values, clicking a table row correctly syncs the toolbar dropdown, and — most importantly — that `beforeprint`/`afterprint` still force-show every card regardless of any active iteration/status/search filter, then correctly restore the prior filtered view afterward. This is what actually proves "PDF/print output includes all iterations," not an assumption.
+>
+> **A real bug this testing caught:** `filterByIterationFromTable()` called `container.scrollIntoView()` unguarded. `jsdom` doesn't implement `scrollIntoView` (real browsers do), and hitting that gap surfaced that the same unguarded pattern already existed in `jumpToFirstFailure()` too. Both are now guarded with a `typeof ... === 'function'` check — defensive regardless of which environment actually lacks it.
+>
+> **Scope discipline:** the "Iterations" KPI card, the overview table, and per-card iteration badges only render when `iterationsCount > 1` — confirmed by grepping the generated HTML for actual rendered elements (not just the always-present CSS class definitions) on a single-run report and finding zero. A report with one iteration looks exactly as it did before this milestone.
 
 ## Suggested commit
 

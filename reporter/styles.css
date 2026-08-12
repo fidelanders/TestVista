@@ -235,6 +235,7 @@
   .red { color: var(--red); }
   .blue { color: var(--blue-mid); }
   .orange { color: var(--orange); }
+  .purple { color: #7c3aed; }
 /* 
   .summary-row {
     display: grid;
@@ -461,6 +462,85 @@
   }
   .pass { background: #dcfce7; color: #166534; }
   .fail { background: #fee2e2; color: #991b1b; }
+  .iteration-badge { background: #ede9fe; color: #5b21b6; }
+
+  .test-card-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .iteration-filter-select {
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: white;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+
+  .iteration-overview-card {
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .iteration-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+
+  .iteration-table thead th {
+    text-align: left;
+    padding: 12px 20px;
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .iteration-table td {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .iteration-table tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  .iteration-row {
+    cursor: pointer;
+    transition: background 0.12s ease;
+  }
+
+  .iteration-row:hover,
+  .iteration-row:focus-visible {
+    background: #f8fafc;
+    outline: none;
+  }
+
+  .iteration-row-number {
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .rate-good { color: var(--green); font-weight: 700; }
+  .rate-warn { color: var(--orange); font-weight: 700; }
+  .rate-bad { color: var(--red); font-weight: 700; }
+
+  .iteration-table-hint {
+    margin: 0;
+    padding: 10px 20px;
+    font-size: 12px;
+    color: var(--text-muted);
+    background: #f8fafc;
+    border-top: 1px solid var(--border);
+  }
 
   details { margin-top: 8px; }
   summary {
@@ -931,6 +1011,24 @@
     button,
     .print-btn {
         display: none !important;
+    }
+
+
+    /* "Click a row to filter" is meaningless on a printed page -- there's
+       nothing to click. The table itself stays; only the hint disappears. */
+    .iteration-table-hint {
+        display: none;
+    }
+
+    /* If a run has many iterations, the table can end up taller than a
+       single page -- repeat the header row on each page it spans rather
+       than only showing column labels once at the very top. */
+    .iteration-table thead {
+        display: table-header-group;
+    }
+
+    .iteration-row {
+        cursor: default;
     }
 
 

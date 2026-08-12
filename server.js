@@ -3,7 +3,7 @@ const fs = require('fs');
 const express = require('express');
 const multer = require('multer');
 
-const { runCollection, reportsDir } = require('./index');
+const { runCollection, reportsDir, normalizeIterations, parseDataFile } = require('./index');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -71,12 +71,14 @@ app.post(
     '/api/run',
     upload.fields([
         { name: 'collection', maxCount: 1 },
-        { name: 'environment', maxCount: 1 }
+        { name: 'environment', maxCount: 1 },
+        { name: 'dataFile', maxCount: 1 }
     ]),
     async (req, res) => {
 
     const collectionFile = req.files?.collection?.[0];
     const environmentFile = req.files?.environment?.[0];
+    const dataFileUpload = req.files?.dataFile?.[0];
 
     if (!collectionFile) {
         return res.status(400).json({ error: 'No collection file was uploaded.' });
@@ -112,13 +114,46 @@ app.post(
         }
     }
 
+    // Data file is also entirely optional. parseDataFile() (shared with the
+    // CLI path) handles both CSV and JSON and never writes the upload to
+    // disk -- it's parsed straight out of the in-memory buffer multer gave us.
+    let dataFile;
+    if (dataFileUpload) {
+        try {
+            dataFile = parseDataFile({
+                buffer: dataFileUpload.buffer,
+                filename: dataFileUpload.originalname
+            });
+        } catch (err) {
+            return res.status(400).json({ error: err.message });
+        }
+    }
+
+    // Iterations is a plain text field (not a file), so multer's `.fields()`
+    // puts it on req.body alongside the uploaded files. Validated here via
+    // the same normalizeIterations() that runCollection() itself calls, so
+    // bad input gets a clean 400 instead of a generic 500 from deep inside
+    // the run. Note: only the RAW value is validated here and then discarded
+    // -- the raw (possibly undefined) req.body.iterations is what actually
+    // gets passed to runCollection() below, not a pre-normalized default of
+    // 1. runCollection needs to see "nothing was submitted" as literally
+    // undefined, not as the number 1, to correctly default to one iteration
+    // per data-file row when a data file is attached and no count was typed.
+    try {
+        normalizeIterations(req.body?.iterations); // validate only; result intentionally discarded
+    } catch (err) {
+        return res.status(400).json({ error: err.message });
+    }
+
     const runId = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
     const reportBaseName = `${sanitizeFilenamePart(collection.info?.name || 'Collection')}_${runId}`;
 
     try {
-        const { htmlPath, jsonPath, pdfPath, summary, collectionName, environmentName } = await runCollection({
+        const { htmlPath, jsonPath, pdfPath, summary, collectionName, environmentName, iterations: ranIterations } = await runCollection({
             collection,
             environment,
+            dataFile,
+            iterations: req.body?.iterations,
             reportBaseName
         });
 
@@ -128,6 +163,7 @@ app.post(
             success: true,
             collectionName,
             environmentName,
+            iterations: ranIterations,
             ...stats,
             reportUrl: `/reports/${path.basename(htmlPath)}`,
             jsonUrl: `/reports/${path.basename(jsonPath)}`,

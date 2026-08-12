@@ -332,6 +332,58 @@ code {
 }
 .env-clear-btn:hover { color: var(--red); }
 
+/* --- iteration count --- */
+.action-row .iterations-picker {
+  flex: 0 0 90px;
+  margin-top: 12px;
+}
+.iterations-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px dashed var(--line);
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.iterations-label:focus-within {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+.iterations-input {
+  width: 34px;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+.iterations-input::-webkit-outer-spin-button,
+.iterations-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* --- data file row (standalone, doesn't share the 3-item action-row's
+   first/last-child flex ratios -- kept separate on purpose) --- */
+.data-file-row {
+  margin-bottom: 10px;
+}
+.data-file-row .env-picker-label.has-file {
+  border-style: solid;
+  border-color: var(--green);
+  color: var(--green);
+  background: rgba(52, 211, 153, 0.06);
+}
+
 /* --- running log --- */
 .log {
   font-family: var(--font-mono);

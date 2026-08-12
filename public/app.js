@@ -8,11 +8,20 @@
   const envFileNameLabel = document.getElementById('envFileNameLabel');
   const envClearBtn = document.getElementById('envClearBtn');
   const submitBtn = document.getElementById('submitBtn');
+  const iterationsInput = document.getElementById('iterationsInput');
+
+  // Data file (CSV/JSON) controls
+  const dataFileInput = document.getElementById('dataFileInput');
+  const dataFilePickerLabel = document.getElementById('dataFilePickerLabel');
+  const dataFileNameLabel = document.getElementById('dataFileNameLabel');
+  const dataFileClearBtn = document.getElementById('dataFileClearBtn');
 
   const DEFAULT_ENV_LABEL = 'Add environment file (optional)';
+  const DEFAULT_DATA_FILE_LABEL = 'Add data file — CSV or JSON (optional)';
 
   let selectedCollectionFile = null;
   let selectedEnvironmentFile = null;
+  let selectedDataFile = null;
   let retryCount = 0;
   const MAX_RETRIES = 5;
 
@@ -33,6 +42,7 @@
   const resultBadge = document.getElementById('resultBadge');
   const resultCollectionName = document.getElementById('resultCollectionName');
   const resultEnvironmentName = document.getElementById('resultEnvironmentName');
+  const resultIterations = document.getElementById('resultIterations');
   const statTotal = document.getElementById('statTotal');
   const statPassed = document.getElementById('statPassed');
   const statFailed = document.getElementById('statFailed');
@@ -80,10 +90,31 @@
     }
   }
 
+  function clearDataFileSelection() {
+    selectedDataFile = null;
+
+    if (dataFileInput) {
+      dataFileInput.value = '';
+    }
+
+    if (dataFileNameLabel) {
+      dataFileNameLabel.textContent = DEFAULT_DATA_FILE_LABEL;
+    }
+
+    if (dataFilePickerLabel) {
+      dataFilePickerLabel.classList.remove('has-file');
+    }
+
+    if (dataFileClearBtn) {
+      dataFileClearBtn.classList.add('hidden');
+    }
+  }
+
   function resetToIdle() {
 
     selectedCollectionFile = null;
     selectedEnvironmentFile = null;
+    selectedDataFile = null;
 
     retryCount = 0;
 
@@ -100,6 +131,11 @@
       'Collection.json';
 
     clearEnvironmentSelection();
+    clearDataFileSelection();
+
+    if (iterationsInput) {
+      iterationsInput.value = '';
+    }
 
     submitBtn.disabled = true;
 
@@ -191,6 +227,47 @@
     e.stopPropagation();
 
     clearEnvironmentSelection();
+  });
+
+
+  // ---------------------------------------------------------
+  // Data file (CSV/JSON)
+  // ---------------------------------------------------------
+
+  dataFileInput.addEventListener('change', () => {
+    const file = dataFileInput.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!/\.(csv|json)$/i.test(file.name)) {
+      dataFileInput.value = '';
+
+      errorFileName.textContent = file.name;
+      errorMessage.textContent =
+        'The data file needs to be a .csv or .json file.';
+
+      showState('error');
+      return;
+    }
+
+    selectedDataFile = file;
+
+    dataFileNameLabel.textContent = file.name;
+    dataFilePickerLabel.classList.add('has-file');
+    dataFileClearBtn.classList.remove('hidden');
+
+    // Same as environment/collection: selecting a data file does NOT
+    // start the run. The user must click Submit.
+  });
+
+
+  dataFileClearBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    clearDataFileSelection();
   });
 
 
@@ -395,6 +472,20 @@
         );
       }
 
+      if (selectedDataFile) {
+        formData.append(
+          'dataFile',
+          selectedDataFile
+        );
+      }
+
+      if (iterationsInput && iterationsInput.value) {
+        formData.append(
+          'iterations',
+          iterationsInput.value
+        );
+      }
+
       let response;
 
       /*
@@ -554,6 +645,18 @@
       resultEnvironmentName.classList.add(
         'hidden'
       );
+    }
+
+
+    // Only worth showing when it's more than the default single run --
+    // no need to clutter the result row with "1 iteration" every time.
+    if (resultIterations) {
+      if ((data.iterations ?? 1) > 1) {
+        resultIterations.textContent = `${data.iterations}× iterations`;
+        resultIterations.classList.remove('hidden');
+      } else {
+        resultIterations.classList.add('hidden');
+      }
     }
 
 
